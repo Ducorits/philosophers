@@ -6,7 +6,7 @@
 /*   By: dritsema <dritsema@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/01/11 20:07:04 by dritsema      #+#    #+#                 */
-/*   Updated: 2023/01/20 18:11:42 by dritsema      ########   odam.nl         */
+/*   Updated: 2023/01/25 16:54:11 by dritsema      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,13 +15,13 @@
 #include <sys/time.h>
 #include <unistd.h>
 
-int	custom_sleep(long long sleep_time)
+long	custom_sleep(long long sleep_time)
 {
 	struct timeval	start;
 	struct timeval	current;
-	long long		to_sleep;
-	long long		start_usec;
-	long long		current_usec;
+	long			to_sleep;
+	long			start_usec;
+	long			current_usec;
 
 	gettimeofday(&start, NULL);
 	current = start;
@@ -30,10 +30,28 @@ int	custom_sleep(long long sleep_time)
 	current_usec = start_usec;
 	while (current_usec - start_usec <= sleep_time)
 	{
-		to_sleep = to_sleep / 2;
+		to_sleep = sleep_time - (current_usec - start_usec) / 2;
 		usleep(to_sleep);
 		gettimeofday(&current, NULL);
 		current_usec = (current.tv_sec * 1000000) + current.tv_usec;
+	}
+	return (current_usec - start_usec);
+}
+
+int	choose_fork_id(t_philo *philo, int *left, int *right)
+{
+	if (philo->id % 2)
+	{
+		*left = philo->id;
+		*right = (philo->id + 1) % philo->info->philo_count;
+	}
+	else
+	{
+		if (philo->id)
+			*left = philo->id - 1;
+		else
+			*left = philo->info->philo_count - 1;
+		*right = philo->id;
 	}
 	return (0);
 }
@@ -41,30 +59,37 @@ int	custom_sleep(long long sleep_time)
 int	try_to_eat(t_philo *philo)
 {
 	int		left;
+	int		right;
 	t_info	*info;
 
 	info = philo->info;
-	if (philo->id != 0)
-		left = philo->id - 1;
-	else
-		left = info->philo_count - 1;
-	if (!pthread_mutex_lock(&info->forks[left]) && !pthread_mutex_lock(&info->forks[philo->id]))
+	choose_fork_id(philo, &left, &right);
+	if (!pthread_mutex_lock(&info->forks[left]) && !info->someone_died)
 	{
+		printf("%ld %i has taken a fork\n", info->time_stamp / 1000, philo->id);
+		pthread_mutex_lock(&info->forks[right]);
+		if (info->someone_died)
+			return (0);
+		printf("%ld %i has taken a fork\n", info->time_stamp / 1000, philo->id);
 		if (info->time_stamp - philo->last_meal
 			> info->time_to_die * 1000)
 		{
-			pthread_mutex_unlock(&info->forks[philo->id]);
+			pthread_mutex_unlock(&info->forks[right]);
 			pthread_mutex_unlock(&info->forks[left]);
 			return (0);
 		}
 		info->previous_stamp = info->time_stamp;
-		printf("%ld %i has taken a fork\n", info->time_stamp / 1000, philo->id);
-		printf("%ld %i has taken a fork\n", info->time_stamp / 1000, philo->id);
 		printf("%ld %i is eating.\n", info->time_stamp / 1000, philo->id);
+		philo->times_eaten++;
 		philo->last_meal = info->time_stamp;
 		custom_sleep(info->time_to_eat * 1000);
 	}
-	pthread_mutex_unlock(&info->forks[philo->id]);
+	else if (info->someone_died)
+	{
+		pthread_mutex_unlock(&info->forks[left]);
+		return (0);
+	}
+	pthread_mutex_unlock(&info->forks[right]);
 	pthread_mutex_unlock(&info->forks[left]);
 	return (1);
 }
@@ -79,16 +104,19 @@ void	go_to_sleep(int id, t_info	*info)
 void	*philo_thread(void *vargp)
 {
 	t_philo	*philo;
-	int				state;
+	int		state;
 
 	philo = (t_philo *)vargp;
 	state = 1;
-	while (state)
+	while (state && philo->info->someone_died == 0)
 	{
 		state = try_to_eat(philo);
 		if (state)
 			go_to_sleep(philo->id, philo->info);
 	}
+	if (philo->info->someone_died == 1)
+		return (NULL);
 	printf("%ld %i died\n", philo->info->time_stamp / 1000, philo->id);
+	philo->info->someone_died = 1;
 	return (NULL);
 }

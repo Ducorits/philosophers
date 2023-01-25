@@ -6,7 +6,7 @@
 /*   By: dritsema <dritsema@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/01/03 13:10:26 by dritsema      #+#    #+#                 */
-/*   Updated: 2023/01/13 18:36:45 by dritsema      ########   odam.nl         */
+/*   Updated: 2023/01/25 15:51:53 by dritsema      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,7 @@ typedef enum state {
 
 typedef struct s_info
 {
+	int				someone_died;
 	int				philo_count;
 	int				time_to_die;
 	int				time_to_eat;

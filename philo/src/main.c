@@ -6,7 +6,7 @@
 /*   By: dritsema <dritsema@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/01/03 13:10:32 by dritsema      #+#    #+#                 */
-/*   Updated: 2023/01/13 18:37:43 by dritsema      ########   odam.nl         */
+/*   Updated: 2023/01/25 16:55:40 by dritsema      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,11 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/time.h>
+
+void	*monitor_thread(void *vargp)
+{
+	return (NULL);
+}
 
 void	*time_thread(void *vargp)
 {
