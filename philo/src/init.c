@@ -6,7 +6,7 @@
 /*   By: dritsema <dritsema@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/01/11 21:45:29 by dritsema      #+#    #+#                 */
-/*   Updated: 2023/01/25 15:53:19 by dritsema      ########   odam.nl         */
+/*   Updated: 2023/03/04 14:36:25 by dritsema      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,5 +63,6 @@ t_info	init(int argc, char **argv)
 	info.forks = malloc(info.philo_count * sizeof(pthread_mutex_t));
 	info.time_stamp = 0;
 	info.someone_died = 0;
+	info.sim_end = 0;
 	return (info);
 }

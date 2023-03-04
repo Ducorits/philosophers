@@ -6,7 +6,7 @@
 /*   By: dritsema <dritsema@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/01/03 13:10:32 by dritsema      #+#    #+#                 */
-/*   Updated: 2023/01/25 16:55:40 by dritsema      ########   odam.nl         */
+/*   Updated: 2023/03/04 15:20:34 by dritsema      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,25 @@
 
 void	*monitor_thread(void *vargp)
 {
+	t_info	*info;
+	t_philo	*philos;
+	int		i;
+	int		eat_goal_reached;
+
+	info = philos[i].info;
+	while (!info->sim_end)
+	{
+		i = 0;
+		eat_goal_reached = 1;
+		while (i < info->philo_count)
+		{
+			if (info->someone_died)
+				return (NULL);
+			if (philos[i].times_eaten < info->eat_goal)
+				eat_goal_reached = 0;
+			i++;
+		}
+	}
 	return (NULL);
 }
 
@@ -59,6 +78,7 @@ void	start_sim(t_info info)
 	pthread_t		*id;
 	t_philo			*philos;
 	pthread_t		time_id;
+	pthread_t		monit_id;
 
 	i = 0;
 	gettimeofday(&start, NULL);
@@ -66,6 +86,8 @@ void	start_sim(t_info info)
 	philos = malloc(info.philo_count * sizeof(t_philo));
 	pthread_create(&time_id, NULL, time_thread, (void *)&info);
 	pthread_detach(time_id);
+	pthread_create(&monit_id, NULL, monitor_thread, (void *)&philos);
+	pthread_detach(monit_id);
 	while (i < info.philo_count)
 	{
 		philos[i].id = i;
