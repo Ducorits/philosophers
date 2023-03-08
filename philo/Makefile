@@ -16,7 +16,7 @@ INSET	= $(BEGIN)$(GREEN)+ $(BLUE)
 
 NAME		=	philosophers
 
-SRCS		=	main.c philo.c init.c
+SRCS		=	main.c philo.c init.c monitor.c utility.c
 
 INC			=	-I ./include
 
@@ -38,7 +38,7 @@ PERCENT		=	$(INSET)$(CYAN)$(shell echo \
 ifeq ($(DEBUG), 1)
 CFLAGS	= -Wall -Wextra -Werror -fsanitize=address -g
 else
-CFLAGS	= -Wall -Wextra -Werror
+CFLAGS	= -Wall -Wextra -Werror -O3
 endif
 
 all: heading status comp

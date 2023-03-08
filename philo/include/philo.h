@@ -6,7 +6,7 @@
 /*   By: dritsema <dritsema@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/01/03 13:10:26 by dritsema      #+#    #+#                 */
-/*   Updated: 2023/03/04 14:35:48 by dritsema      ########   odam.nl         */
+/*   Updated: 2023/03/08 18:54:18 by dritsema      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,13 +15,6 @@
 
 # include <pthread.h>
 # include <sys/time.h>
-
-typedef enum state {
-	IDLE,
-	THINK,
-	EAT,
-	SLEEP
-}	t_state;
 
 typedef struct s_info
 {
@@ -35,11 +28,11 @@ typedef struct s_info
 	long			time_stamp;
 	long			previous_stamp;
 	pthread_mutex_t	*forks;
+	pthread_mutex_t	start;
 }	t_info;
 
 typedef struct s_philo
 {
-	t_state			state;
 	int				id;
 	t_info			*info;
 	long			last_meal;
@@ -48,5 +41,7 @@ typedef struct s_philo
 
 t_info	init(int argc, char **argv);
 void	*philo_thread(void *vargp);
+void	*monitor_thread(void *vargp);
+long	custom_sleep(long long sleep_time);
 
 #endif //PHILO_H
