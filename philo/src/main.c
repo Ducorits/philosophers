@@ -6,7 +6,7 @@
 /*   By: dritsema <dritsema@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/01/03 13:10:32 by dritsema      #+#    #+#                 */
-/*   Updated: 2023/03/04 15:20:34 by dritsema      ########   odam.nl         */
+/*   Updated: 2023/03/08 15:39:28 by dritsema      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,16 @@
 #include <unistd.h>
 #include <sys/time.h>
 
+// long	get_time(void)
+// {
+// 	struct timeval	time;
+// 	long			utime;
+
+// 	gettimeofday(&time, NULL);
+// 	utime = (time.tv_sec * 1000000) + time.tv_usec;
+// 	return (utime);
+// }
+
 void	*monitor_thread(void *vargp)
 {
 	t_info	*info;
@@ -23,19 +33,29 @@ void	*monitor_thread(void *vargp)
 	int		i;
 	int		eat_goal_reached;
 
-	info = philos[i].info;
-	while (!info->sim_end)
+	philos = (t_philo *)vargp;
+	info = philos[0].info;
+	printf("%i\n", info->sim_end);
+	while (info->sim_end == 0)
 	{
+		printf("what\n");
 		i = 0;
 		eat_goal_reached = 1;
 		while (i < info->philo_count)
 		{
-			if (info->someone_died)
-				return (NULL);
+			if (info->time_stamp - philos[i].last_meal
+				> info->time_to_die * 1000)
+			{
+				printf("%ld %i died\n", info->time_stamp / 1000, philos[i].id);
+				info->someone_died = 1;
+				info->sim_end = 1;
+			}
 			if (philos[i].times_eaten < info->eat_goal)
 				eat_goal_reached = 0;
 			i++;
 		}
+		if (eat_goal_reached == 1)
+			info->sim_end = 1;
 	}
 	return (NULL);
 }
@@ -86,8 +106,6 @@ void	start_sim(t_info info)
 	philos = malloc(info.philo_count * sizeof(t_philo));
 	pthread_create(&time_id, NULL, time_thread, (void *)&info);
 	pthread_detach(time_id);
-	pthread_create(&monit_id, NULL, monitor_thread, (void *)&philos);
-	pthread_detach(monit_id);
 	while (i < info.philo_count)
 	{
 		philos[i].id = i;
@@ -98,6 +116,8 @@ void	start_sim(t_info info)
 		pthread_create(&id[i], NULL, philo_thread, (void *)&philos[i]);
 		i++;
 	}
+	pthread_create(&monit_id, NULL, monitor_thread, (void *)&philos);
+	pthread_detach(monit_id);
 	i = 0;
 	while (i < info.philo_count)
 	{
@@ -125,6 +145,12 @@ int	main(int argc, char **argv)
 		start_sim(info);
 		printf("end_sim\n");
 		end_sim(&info);
+	}
+	else
+	{
+		write(STDOUT_FILENO, "Usage: ./philosophers [philosopher count] ", 43);
+		write(STDOUT_FILENO, "[time to die] [time to eat] [time to sleep]", 44);
+		write(STDOUT_FILENO, " {optional eat goal}\n", 22);
 	}
 	return (0);
 }

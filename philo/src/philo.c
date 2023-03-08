@@ -6,7 +6,7 @@
 /*   By: dritsema <dritsema@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/01/11 20:07:04 by dritsema      #+#    #+#                 */
-/*   Updated: 2023/01/25 16:54:11 by dritsema      ########   odam.nl         */
+/*   Updated: 2023/03/08 15:30:14 by dritsema      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,39 +64,37 @@ int	try_to_eat(t_philo *philo)
 
 	info = philo->info;
 	choose_fork_id(philo, &left, &right);
-	if (!pthread_mutex_lock(&info->forks[left]) && !info->someone_died)
+	if (!pthread_mutex_lock(&info->forks[left]))
 	{
+		if (info->someone_died)
+		{
+			pthread_mutex_unlock(&info->forks[left]);
+			return (0);
+		}
 		printf("%ld %i has taken a fork\n", info->time_stamp / 1000, philo->id);
 		pthread_mutex_lock(&info->forks[right]);
 		if (info->someone_died)
-			return (0);
-		printf("%ld %i has taken a fork\n", info->time_stamp / 1000, philo->id);
-		if (info->time_stamp - philo->last_meal
-			> info->time_to_die * 1000)
 		{
 			pthread_mutex_unlock(&info->forks[right]);
 			pthread_mutex_unlock(&info->forks[left]);
 			return (0);
 		}
-		info->previous_stamp = info->time_stamp;
+		printf("%ld %i has taken a fork\n", info->time_stamp / 1000, philo->id);
 		printf("%ld %i is eating.\n", info->time_stamp / 1000, philo->id);
 		philo->times_eaten++;
 		philo->last_meal = info->time_stamp;
 		custom_sleep(info->time_to_eat * 1000);
-	}
-	else if (info->someone_died)
-	{
 		pthread_mutex_unlock(&info->forks[left]);
-		return (0);
+		pthread_mutex_unlock(&info->forks[right]);
+		return (1);
 	}
-	pthread_mutex_unlock(&info->forks[right]);
-	pthread_mutex_unlock(&info->forks[left]);
+	// printf("pthread_mutex_lock failed\n");
 	return (1);
 }
 
 void	go_to_sleep(int id, t_info	*info)
 {
-	info->previous_stamp = info->time_stamp;
+	// info->previous_stamp = info->time_stamp;
 	printf("%ld %i is sleeping\n", info->time_stamp / 1000, id);
 	custom_sleep(info->time_to_sleep * 1000);
 }
