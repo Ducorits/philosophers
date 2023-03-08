@@ -6,7 +6,7 @@
 /*   By: dritsema <dritsema@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/01/11 20:07:04 by dritsema      #+#    #+#                 */
-/*   Updated: 2023/03/08 18:54:44 by dritsema      ########   odam.nl         */
+/*   Updated: 2023/03/08 19:34:25 by dritsema      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,6 +97,8 @@ void	*philo_thread(void *vargp)
 	{
 		if (try_to_eat(philo) && !philo->info->sim_end)
 			go_to_sleep(philo->id, philo->info);
+		printf("%ld %i is thinking.\n",
+			philo->info->time_stamp / 1000, philo->id);
 	}
 	return (NULL);
 }
