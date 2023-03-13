@@ -6,7 +6,7 @@
 /*   By: dritsema <dritsema@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/01/11 21:45:29 by dritsema      #+#    #+#                 */
-/*   Updated: 2023/03/04 14:36:25 by dritsema      ########   odam.nl         */
+/*   Updated: 2023/03/13 14:18:46 by dritsema      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,27 +42,30 @@ int	init_mutexes(t_info *info)
 	info->forks = malloc(info->philo_count * sizeof(pthread_mutex_t));
 	while (i < info->philo_count)
 	{
-		pthread_mutex_init(&info->forks[i], NULL);
+		if (pthread_mutex_init(&info->forks[i], NULL))
+			return (0);
 		i++;
 	}
-	return (0);
+	return (1);
 }
 
-t_info	init(int argc, char **argv)
+t_info	*init(int argc, char **argv)
 {
-	t_info	info;
+	t_info	*info;
 
-	info.philo_count = ft_atoi(argv[1]);
-	info.time_to_die = ft_atoi(argv[2]);
-	info.time_to_eat = ft_atoi(argv[3]);
-	info.time_to_sleep = ft_atoi(argv[4]);
+	info = malloc(sizeof(t_info));
+	info->philo_count = ft_atoi(argv[1]);
+	info->time_to_die = ft_atoi(argv[2]);
+	info->time_to_eat = ft_atoi(argv[3]);
+	info->time_to_sleep = ft_atoi(argv[4]);
 	if (argc == 6)
-		info.eat_goal = ft_atoi(argv[5]);
+		info->eat_goal = ft_atoi(argv[5]);
 	else
-		info.eat_goal = 0;
-	info.forks = malloc(info.philo_count * sizeof(pthread_mutex_t));
-	info.time_stamp = 0;
-	info.someone_died = 0;
-	info.sim_end = 0;
+		info->eat_goal = 0;
+	if (!init_mutexes(info))
+		return (NULL);
+	info->time_stamp = 0;
+	info->someone_died = 0;
+	info->sim_end = 0;
 	return (info);
 }

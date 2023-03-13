@@ -6,7 +6,7 @@
 /*   By: dritsema <dritsema@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/01/03 13:10:26 by dritsema      #+#    #+#                 */
-/*   Updated: 2023/03/08 18:54:18 by dritsema      ########   odam.nl         */
+/*   Updated: 2023/03/13 18:13:45 by dritsema      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,10 +16,16 @@
 # include <pthread.h>
 # include <sys/time.h>
 
+typedef enum e_state
+{
+	SIM_END,
+	THINKING,
+	EATING,
+	SLEEPING,
+	DEAD,
+}	t_state;
 typedef struct s_info
 {
-	int				sim_end;
-	int				someone_died;
 	int				philo_count;
 	int				time_to_die;
 	int				time_to_eat;
@@ -33,13 +39,15 @@ typedef struct s_info
 
 typedef struct s_philo
 {
+	t_state			state;
 	int				id;
 	t_info			*info;
 	long			last_meal;
 	int				times_eaten;
+	pthread_mutex_t	lock;
 }	t_philo;
 
-t_info	init(int argc, char **argv);
+t_info	*init(int argc, char **argv);
 void	*philo_thread(void *vargp);
 void	*monitor_thread(void *vargp);
 long	custom_sleep(long long sleep_time);

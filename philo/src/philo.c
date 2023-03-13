@@ -6,7 +6,7 @@
 /*   By: dritsema <dritsema@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/01/11 20:07:04 by dritsema      #+#    #+#                 */
-/*   Updated: 2023/03/08 19:34:25 by dritsema      ########   odam.nl         */
+/*   Updated: 2023/03/13 18:28:56 by dritsema      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,15 +37,12 @@ int	grab_forks(t_philo *philo, t_info *info, int left, int right)
 {
 	if (!pthread_mutex_lock(&info->forks[left]))
 	{
-		if (info->sim_end)
-		{
-			pthread_mutex_unlock(&info->forks[left]);
-			return (0);
-		}
+		if (!philo->state)
+			return (pthread_mutex_unlock(&info->forks[left]), 0);
 		printf("%ld %i has taken a fork\n", info->time_stamp / 1000, philo->id);
 		if (!pthread_mutex_lock(&info->forks[right]))
 		{
-			if (info->sim_end)
+			if (!philo->state)
 			{
 				pthread_mutex_unlock(&info->forks[right]);
 				pthread_mutex_unlock(&info->forks[left]);
@@ -70,8 +67,10 @@ int	try_to_eat(t_philo *philo)
 	if (grab_forks(philo, info, left, right))
 	{
 		printf("%ld %i is eating.\n", info->time_stamp / 1000, philo->id);
+		pthread_mutex_lock(&philo->lock);
 		philo->times_eaten++;
 		philo->last_meal = info->time_stamp;
+		pthread_mutex_unlock(&philo->lock);
 		custom_sleep(info->time_to_eat * 1000);
 		pthread_mutex_unlock(&info->forks[left]);
 		pthread_mutex_unlock(&info->forks[right]);
@@ -80,10 +79,17 @@ int	try_to_eat(t_philo *philo)
 	return (0);
 }
 
-void	go_to_sleep(int id, t_info	*info)
+void	go_to_sleep(t_philo *philo, t_info	*info)
 {
-	printf("%ld %i is sleeping\n", info->time_stamp / 1000, id);
-	custom_sleep(info->time_to_sleep * 1000);
+	pthread_mutex_lock(&philo->lock);
+	if (philo->state)
+	{
+		pthread_mutex_unlock(&philo->lock);
+		printf("%ld %i is sleeping\n", info->time_stamp / 1000, philo->id);
+		custom_sleep(info->time_to_sleep * 1000);
+	}
+	else
+		pthread_mutex_unlock(&philo->lock);
 }
 
 void	*philo_thread(void *vargp)
@@ -93,12 +99,20 @@ void	*philo_thread(void *vargp)
 	philo = (t_philo *)vargp;
 	pthread_mutex_lock(&philo->info->start);
 	pthread_mutex_unlock(&philo->info->start);
-	while (philo->info->sim_end == 0)
+	while (1)
 	{
-		if (try_to_eat(philo) && !philo->info->sim_end)
-			go_to_sleep(philo->id, philo->info);
-		printf("%ld %i is thinking.\n",
-			philo->info->time_stamp / 1000, philo->id);
+		pthread_mutex_lock(&philo->lock);
+		if (!philo->state)
+			break ;
+		pthread_mutex_unlock(&philo->lock);
+		if (try_to_eat(philo))
+		{
+			go_to_sleep(philo, philo->info);
+			if (philo->state)
+				printf("%ld %i is thinking.\n",
+					philo->info->time_stamp / 1000, philo->id);
+		}
 	}
+	pthread_mutex_unlock(&philo->lock);
 	return (NULL);
 }

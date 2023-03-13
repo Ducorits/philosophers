@@ -6,7 +6,7 @@
 /*   By: dritsema <dritsema@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/01/03 13:10:32 by dritsema      #+#    #+#                 */
-/*   Updated: 2023/03/08 19:01:15 by dritsema      ########   odam.nl         */
+/*   Updated: 2023/03/13 16:53:51 by dritsema      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,16 +45,19 @@ void	end_sim(t_info *info)
 		i++;
 	}
 	free(info->forks);
+	free(info);
 }
 
-void	start_threads(t_info *info, pthread_t *id, t_philo *philos)
+int	start_threads(t_info *info, pthread_t *id, t_philo *philos)
 {
 	pthread_t		time_id;
 	pthread_t		monit_id;
 	int				i;
 
-	pthread_create(&time_id, NULL, time_thread, (void *)info);
-	pthread_detach(time_id);
+	if (pthread_create(&time_id, NULL, time_thread, (void *)info))
+		return (1);
+	if (pthread_detach(time_id))
+		return (1);
 	i = 0;
 	while (i < info->philo_count)
 	{
@@ -62,26 +65,39 @@ void	start_threads(t_info *info, pthread_t *id, t_philo *philos)
 		philos[i].info = info;
 		philos[i].last_meal = 0;
 		philos[i].times_eaten = 0;
-		pthread_create(&id[i], NULL, philo_thread, (void *)&philos[i]);
+		if (pthread_mutex_init(&philos[i].lock, NULL))
+			return (1);
+		if (pthread_create(&id[i], NULL, philo_thread, (void *)&philos[i]))
+			return (1);
 		i++;
 	}
-	pthread_create(&monit_id, NULL, monitor_thread, (void *)philos);
-	pthread_detach(monit_id);
+	if (pthread_create(&monit_id, NULL, monitor_thread, (void *)philos))
+		return (1);
+	if (pthread_detach(monit_id))
+		return (1);
+	return (0);
 }
 
-void	start_sim(t_info info)
+void	start_sim(t_info *info)
 {
 	int				i;
 	pthread_t		*id;
 	t_philo			*philos;
 
-	id = malloc(info.philo_count * sizeof(pthread_t));
-	philos = malloc(info.philo_count * sizeof(t_philo));
-	pthread_mutex_lock(&info.start);
-	start_threads(&info, id, philos);
-	pthread_mutex_unlock(&info.start);
+	id = malloc(info->philo_count * sizeof(pthread_t));
+	philos = malloc(info->philo_count * sizeof(t_philo));
+	if (philos == NULL || id == NULL)
+		return (free(philos), free(id));
+	pthread_mutex_lock(&info->start);
+	if (start_threads(info, id, philos))
+	{
+		pthread_mutex_lock(&info->lock);
+		info->sim_end = 1;
+		pthread_mutex_unlock(&info->lock);
+	}
+	pthread_mutex_unlock(&info->start);
 	i = 0;
-	while (i < info.philo_count)
+	while (i < info->philo_count)
 	{
 		pthread_join(id[i], NULL);
 		i++;
@@ -99,13 +115,18 @@ void	start_sim(t_info info)
 // optional eat goal.
 int	main(int argc, char **argv)
 {
-	t_info	info;
+	t_info	*info;
 
 	if (argc > 4 && argc < 7)
 	{
+		printf("init\n");
 		info = init(argc, argv);
+		if (info == NULL)
+			return (1);
+		printf("start-sim\n");
 		start_sim(info);
-		end_sim(&info);
+		printf("end sim\n");
+		end_sim(info);
 	}
 	else
 	{
