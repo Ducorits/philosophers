@@ -6,7 +6,7 @@
 /*   By: dritsema <dritsema@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/01/03 13:10:26 by dritsema      #+#    #+#                 */
-/*   Updated: 2023/03/13 18:13:45 by dritsema      ########   odam.nl         */
+/*   Updated: 2023/03/14 15:03:50 by dritsema      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,11 +18,10 @@
 
 typedef enum e_state
 {
-	SIM_END,
+	DEAD,
 	THINKING,
 	EATING,
 	SLEEPING,
-	DEAD,
 }	t_state;
 typedef struct s_info
 {

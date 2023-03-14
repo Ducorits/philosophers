@@ -6,7 +6,7 @@
 /*   By: dritsema <dritsema@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/01/03 13:10:32 by dritsema      #+#    #+#                 */
-/*   Updated: 2023/03/13 16:53:51 by dritsema      ########   odam.nl         */
+/*   Updated: 2023/03/14 15:04:18 by dritsema      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,6 +65,7 @@ int	start_threads(t_info *info, pthread_t *id, t_philo *philos)
 		philos[i].info = info;
 		philos[i].last_meal = 0;
 		philos[i].times_eaten = 0;
+		philos[i].state = THINKING;
 		if (pthread_mutex_init(&philos[i].lock, NULL))
 			return (1);
 		if (pthread_create(&id[i], NULL, philo_thread, (void *)&philos[i]))
@@ -90,11 +91,6 @@ void	start_sim(t_info *info)
 		return (free(philos), free(id));
 	pthread_mutex_lock(&info->start);
 	if (start_threads(info, id, philos))
-	{
-		pthread_mutex_lock(&info->lock);
-		info->sim_end = 1;
-		pthread_mutex_unlock(&info->lock);
-	}
 	pthread_mutex_unlock(&info->start);
 	i = 0;
 	while (i < info->philo_count)

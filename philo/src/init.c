@@ -6,7 +6,7 @@
 /*   By: dritsema <dritsema@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/01/11 21:45:29 by dritsema      #+#    #+#                 */
-/*   Updated: 2023/03/13 14:18:46 by dritsema      ########   odam.nl         */
+/*   Updated: 2023/03/14 15:04:34 by dritsema      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,7 +65,5 @@ t_info	*init(int argc, char **argv)
 	if (!init_mutexes(info))
 		return (NULL);
 	info->time_stamp = 0;
-	info->someone_died = 0;
-	info->sim_end = 0;
 	return (info);
 }
