@@ -6,7 +6,7 @@
 /*   By: dritsema <dritsema@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/01/03 13:10:32 by dritsema      #+#    #+#                 */
-/*   Updated: 2023/03/14 15:04:18 by dritsema      ########   odam.nl         */
+/*   Updated: 2023/03/16 18:46:53 by dritsema      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,24 +15,6 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/time.h>
-
-void	*time_thread(void *vargp)
-{
-	t_info			*info;
-	struct timeval	stamp;
-	struct timeval	start;
-
-	gettimeofday(&start, NULL);
-	info = (t_info *)vargp;
-	while (1)
-	{
-		gettimeofday(&stamp, NULL);
-		info->time_stamp = (((stamp.tv_sec * 1000000) + stamp.tv_usec)
-				- ((start.tv_sec * 1000000) + start.tv_usec));
-		usleep(1);
-	}
-	return (NULL);
-}
 
 void	end_sim(t_info *info)
 {
@@ -48,16 +30,10 @@ void	end_sim(t_info *info)
 	free(info);
 }
 
-int	start_threads(t_info *info, pthread_t *id, t_philo *philos)
+int	setup_philosophers(t_philo *philos, t_info *info, long start_time)
 {
-	pthread_t		time_id;
-	pthread_t		monit_id;
-	int				i;
+	int	i;
 
-	if (pthread_create(&time_id, NULL, time_thread, (void *)info))
-		return (1);
-	if (pthread_detach(time_id))
-		return (1);
 	i = 0;
 	while (i < info->philo_count)
 	{
@@ -66,8 +42,34 @@ int	start_threads(t_info *info, pthread_t *id, t_philo *philos)
 		philos[i].last_meal = 0;
 		philos[i].times_eaten = 0;
 		philos[i].state = THINKING;
-		if (pthread_mutex_init(&philos[i].lock, NULL))
+		philos[i].start_time = start_time;
+		if (info->philo_count % 2)
+			choose_fork_uneven(&philos[i], i);
+		else
+			choose_fork_even(&philos[i], i);
+		if (pthread_mutex_init(&philos[i].state_lock, NULL)
+			|| pthread_mutex_init(&philos[i].eat_lock, NULL)
+			|| pthread_mutex_init(&philos[i].time_lock, NULL))
 			return (1);
+		i++;
+	}
+	return (0);
+}
+
+int	start_threads(t_info *info, pthread_t *id, t_philo *philos)
+{
+	pthread_t		monit_id;
+	struct timeval	time;
+	long			start_time;
+	int				i;
+
+	gettimeofday(&time, NULL);
+	start_time = (((time.tv_sec * 1000000) + time.tv_usec));
+	if (setup_philosophers(philos, info, start_time))
+		return (1);
+	i = 0;
+	while (i < info->philo_count)
+	{
 		if (pthread_create(&id[i], NULL, philo_thread, (void *)&philos[i]))
 			return (1);
 		i++;
@@ -91,6 +93,10 @@ void	start_sim(t_info *info)
 		return (free(philos), free(id));
 	pthread_mutex_lock(&info->start);
 	if (start_threads(info, id, philos))
+	{
+		pthread_mutex_unlock(&info->start);
+		return ;
+	}
 	pthread_mutex_unlock(&info->start);
 	i = 0;
 	while (i < info->philo_count)
@@ -119,7 +125,7 @@ int	main(int argc, char **argv)
 		info = init(argc, argv);
 		if (info == NULL)
 			return (1);
-		printf("start-sim\n");
+		printf("start sim\n");
 		start_sim(info);
 		printf("end sim\n");
 		end_sim(info);

@@ -6,21 +6,42 @@
 /*   By: dritsema <dritsema@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/03/08 16:39:53 by dritsema      #+#    #+#                 */
-/*   Updated: 2023/03/14 15:04:47 by dritsema      ########   odam.nl         */
+/*   Updated: 2023/03/16 18:59:23 by dritsema      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <philo.h>
 #include <stdio.h>
 
-void	check_death(t_info *info, t_philo philo)
+int	check_death(t_info *info, t_philo *philo)
 {
-	if (info->time_stamp - philo.last_meal > info->time_to_die * 1000)
+	long	time_stamp;
+
+	time_stamp = get_timestamp(philo->start_time);
+	pthread_mutex_lock(&philo->time_lock);
+	if (time_stamp - philo->last_meal > info->time_to_die * 1000)
 	{
-		printf("%ld %i died\n", info->time_stamp / 1000, philo.id);
-		philo.state = 0;
+		pthread_mutex_unlock(&philo->time_lock);
+		printf("%ld %i died\n", time_stamp / 1000, philo->id);
+		pthread_mutex_lock(&philo->state_lock);
+		philo->state = DEAD;
+		pthread_mutex_unlock(&philo->state_lock);
+		return (1);
 	}
-	return ;
+	pthread_mutex_unlock(&philo->time_lock);
+	return (0);
+}
+
+int	check_eatgoal(t_info *info, t_philo *philo)
+{
+	pthread_mutex_lock(&philo->eat_lock);
+	if (philo->times_eaten < info->eat_goal || info->eat_goal == 0)
+	{
+		pthread_mutex_unlock(&philo->eat_lock);
+		return (0);
+	}
+	pthread_mutex_unlock(&philo->eat_lock);
+	return (1);
 }
 
 void	*monitor_thread(void *vargp)
@@ -40,17 +61,13 @@ void	*monitor_thread(void *vargp)
 		eat_goal_reached = 1;
 		while (i < info->philo_count && !sim_end)
 		{
-			pthread_mutex_lock(&philos[i].lock);
-			check_death(info, philos[i]);
-			if (philos[i].times_eaten < info->eat_goal || info->eat_goal == 0)
-				eat_goal_reached = 0;
-			pthread_mutex_unlock(&philos[i].lock);
+			sim_end = check_death(info, &philos[i]);
+			eat_goal_reached = check_eatgoal(info, &philos[i]);
 			i++;
 		}
 		if (eat_goal_reached == 1)
-		{
 			sim_end = 1;
-		}
 	}
+	kill_them_all(philos, info);
 	return (NULL);
 }

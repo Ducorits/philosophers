@@ -6,7 +6,7 @@
 /*   By: dritsema <dritsema@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/01/11 20:07:04 by dritsema      #+#    #+#                 */
-/*   Updated: 2023/03/13 18:28:56 by dritsema      ########   odam.nl         */
+/*   Updated: 2023/03/16 19:21:25 by dritsema      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,41 +15,29 @@
 #include <sys/time.h>
 #include <unistd.h>
 
-int	choose_fork_id(t_philo *philo, int *left, int *right)
+int	grab_forks(t_philo *philo)
 {
-	if (philo->id % 2)
+	if (!pthread_mutex_lock(philo->first_fork))
 	{
-		*left = philo->id;
-		*right = (philo->id + 1) % philo->info->philo_count;
-	}
-	else
-	{
-		if (philo->id)
-			*left = philo->id - 1;
-		else
-			*left = philo->info->philo_count - 1;
-		*right = philo->id;
-	}
-	return (0);
-}
-
-int	grab_forks(t_philo *philo, t_info *info, int left, int right)
-{
-	if (!pthread_mutex_lock(&info->forks[left]))
-	{
+		pthread_mutex_lock(&philo->state_lock);
 		if (!philo->state)
-			return (pthread_mutex_unlock(&info->forks[left]), 0);
-		printf("%ld %i has taken a fork\n", info->time_stamp / 1000, philo->id);
-		if (!pthread_mutex_lock(&info->forks[right]))
+			return (pthread_mutex_unlock(&philo->state_lock),
+				pthread_mutex_unlock(philo->first_fork), 0);
+		pthread_mutex_unlock(&philo->state_lock);
+		printf("%ld %i has taken a fork\n",
+			get_timestamp(philo->start_time) / 1000, philo->id);
+		if (!pthread_mutex_lock(philo->second_fork))
 		{
+			pthread_mutex_lock(&philo->state_lock);
 			if (!philo->state)
 			{
-				pthread_mutex_unlock(&info->forks[right]);
-				pthread_mutex_unlock(&info->forks[left]);
-				return (0);
+				pthread_mutex_unlock(philo->second_fork);
+				pthread_mutex_unlock(philo->first_fork);
+				return (pthread_mutex_unlock(&philo->state_lock), 0);
 			}
+			pthread_mutex_unlock(&philo->state_lock);
 			printf("%ld %i has taken a fork\n",
-				info->time_stamp / 1000, philo->id);
+				get_timestamp(philo->start_time) / 1000, philo->id);
 			return (1);
 		}
 	}
@@ -58,22 +46,22 @@ int	grab_forks(t_philo *philo, t_info *info, int left, int right)
 
 int	try_to_eat(t_philo *philo)
 {
-	int		left;
-	int		right;
 	t_info	*info;
 
 	info = philo->info;
-	choose_fork_id(philo, &left, &right);
-	if (grab_forks(philo, info, left, right))
+	if (grab_forks(philo))
 	{
-		printf("%ld %i is eating.\n", info->time_stamp / 1000, philo->id);
-		pthread_mutex_lock(&philo->lock);
+		printf("%ld %i is eating\n",
+			get_timestamp(philo->start_time) / 1000, philo->id);
+		pthread_mutex_lock(&philo->eat_lock);
 		philo->times_eaten++;
-		philo->last_meal = info->time_stamp;
-		pthread_mutex_unlock(&philo->lock);
+		pthread_mutex_unlock(&philo->eat_lock);
+		pthread_mutex_lock(&philo->time_lock);
+		philo->last_meal = get_timestamp(philo->start_time);
+		pthread_mutex_unlock(&philo->time_lock);
 		custom_sleep(info->time_to_eat * 1000);
-		pthread_mutex_unlock(&info->forks[left]);
-		pthread_mutex_unlock(&info->forks[right]);
+		pthread_mutex_unlock(philo->first_fork);
+		pthread_mutex_unlock(philo->second_fork);
 		return (1);
 	}
 	return (0);
@@ -81,15 +69,32 @@ int	try_to_eat(t_philo *philo)
 
 void	go_to_sleep(t_philo *philo, t_info	*info)
 {
-	pthread_mutex_lock(&philo->lock);
+	pthread_mutex_lock(&philo->state_lock);
 	if (philo->state)
 	{
-		pthread_mutex_unlock(&philo->lock);
-		printf("%ld %i is sleeping\n", info->time_stamp / 1000, philo->id);
+		pthread_mutex_unlock(&philo->state_lock);
+		printf("%ld %i is sleeping\n",
+			get_timestamp(philo->start_time) / 1000, philo->id);
 		custom_sleep(info->time_to_sleep * 1000);
 	}
 	else
-		pthread_mutex_unlock(&philo->lock);
+		pthread_mutex_unlock(&philo->state_lock);
+}
+
+void	go_think(t_philo *philo)
+{
+	if (!philo->info->time_to_think)
+		return ;
+	pthread_mutex_lock(&philo->state_lock);
+	if (philo->state)
+	{
+		pthread_mutex_unlock(&philo->state_lock);
+		printf("%ld %i is thinking\n",
+			get_timestamp(philo->start_time) / 1000, philo->id);
+		custom_sleep(philo->info->time_to_think * 1000);
+	}
+	else
+		pthread_mutex_unlock(&philo->state_lock);
 }
 
 void	*philo_thread(void *vargp)
@@ -101,18 +106,16 @@ void	*philo_thread(void *vargp)
 	pthread_mutex_unlock(&philo->info->start);
 	while (1)
 	{
-		pthread_mutex_lock(&philo->lock);
+		pthread_mutex_lock(&philo->state_lock);
 		if (!philo->state)
 			break ;
-		pthread_mutex_unlock(&philo->lock);
+		pthread_mutex_unlock(&philo->state_lock);
 		if (try_to_eat(philo))
 		{
 			go_to_sleep(philo, philo->info);
-			if (philo->state)
-				printf("%ld %i is thinking.\n",
-					philo->info->time_stamp / 1000, philo->id);
+			go_think(philo);
 		}
 	}
-	pthread_mutex_unlock(&philo->lock);
+	pthread_mutex_unlock(&philo->state_lock);
 	return (NULL);
 }

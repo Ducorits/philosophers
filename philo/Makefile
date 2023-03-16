@@ -16,7 +16,7 @@ INSET	= $(BEGIN)$(GREEN)+ $(BLUE)
 
 NAME		=	philosophers
 
-SRCS		=	main.c philo.c init.c monitor.c utility.c
+SRCS		=	main.c philo.c philo_utils.c init.c monitor.c utility.c
 
 INC			=	-I ./include
 
