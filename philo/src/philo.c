@@ -6,7 +6,7 @@
 /*   By: dritsema <dritsema@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/01/11 20:07:04 by dritsema      #+#    #+#                 */
-/*   Updated: 2023/03/16 19:21:25 by dritsema      ########   odam.nl         */
+/*   Updated: 2023/03/20 12:52:12 by dritsema      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,7 +91,8 @@ void	go_think(t_philo *philo)
 		pthread_mutex_unlock(&philo->state_lock);
 		printf("%ld %i is thinking\n",
 			get_timestamp(philo->start_time) / 1000, philo->id);
-		custom_sleep(philo->info->time_to_think * 1000);
+		if (philo->info->philo_count % 2)
+			custom_sleep(philo->info->time_to_think * 1000);
 	}
 	else
 		pthread_mutex_unlock(&philo->state_lock);
