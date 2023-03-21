@@ -6,7 +6,7 @@
 /*   By: dritsema <dritsema@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/01/03 13:10:32 by dritsema      #+#    #+#                 */
-/*   Updated: 2023/03/21 13:09:32 by dritsema      ########   odam.nl         */
+/*   Updated: 2023/03/21 13:34:29 by dritsema      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,10 +16,16 @@
 #include <unistd.h>
 #include <sys/time.h>
 
-void	end_sim(t_info *info)
+void	end_sim(t_info *info, pthread_t *id)
 {
 	int	i;
 
+	i = 0;
+	while (i < info->philo_count)
+	{
+		pthread_join(id[i], NULL);
+		i++;
+	}
 	i = 0;
 	while (i < info->philo_count)
 	{
@@ -83,7 +89,7 @@ int	start_threads(t_info *info, pthread_t *id, t_philo *philos)
 
 void	start_sim(t_info *info)
 {
-	int				i;
+	// int				i;
 	pthread_t		*id;
 	t_philo			*philos;
 
@@ -95,15 +101,10 @@ void	start_sim(t_info *info)
 	if (start_threads(info, id, philos))
 	{
 		pthread_mutex_unlock(&info->start);
-		return ;
+		return (end_sim(info, id));
 	}
 	pthread_mutex_unlock(&info->start);
-	i = 0;
-	while (i < info->philo_count)
-	{
-		pthread_join(id[i], NULL);
-		i++;
-	}
+	end_sim(info, id);
 	free(id);
 	free(philos);
 	return ;
@@ -128,7 +129,6 @@ int	main(int argc, char **argv)
 			return (1);
 		}
 		start_sim(info);
-		end_sim(info);
 	}
 	else
 	{

@@ -6,7 +6,7 @@
 /*   By: dritsema <dritsema@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/01/03 13:10:26 by dritsema      #+#    #+#                 */
-/*   Updated: 2023/03/16 19:07:12 by dritsema      ########   odam.nl         */
+/*   Updated: 2023/03/21 14:26:07 by dritsema      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,6 +58,7 @@ void	choose_fork_even(t_philo *philo, int i);
 void	choose_fork_uneven(t_philo *philo, int i);
 void	*monitor_thread(void *vargp);
 long	get_timestamp(long start_time);
-long	custom_sleep(long sleep_time);
+void	custom_sleep(long sleep_time);
+long	ms_stamp(t_philo *philo);
 
 #endif //PHILO_H

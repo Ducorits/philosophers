@@ -6,12 +6,17 @@
 /*   By: dritsema <dritsema@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/03/08 18:53:20 by dritsema      #+#    #+#                 */
-/*   Updated: 2023/03/16 19:15:29 by dritsema      ########   odam.nl         */
+/*   Updated: 2023/03/21 14:22:50 by dritsema      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <sys/time.h>
 #include <unistd.h>
+#include <philo.h>
+
+long	ms_stamp(t_philo *philo)
+{
+	return (get_timestamp(philo->start_time) / 1000);
+}
 
 void	custom_sleep(long sleep_time)
 {
