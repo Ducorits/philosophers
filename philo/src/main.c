@@ -6,7 +6,7 @@
 /*   By: dritsema <dritsema@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/01/03 13:10:32 by dritsema      #+#    #+#                 */
-/*   Updated: 2023/03/21 13:34:29 by dritsema      ########   odam.nl         */
+/*   Updated: 2023/03/21 14:39:52 by dritsema      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,7 +89,6 @@ int	start_threads(t_info *info, pthread_t *id, t_philo *philos)
 
 void	start_sim(t_info *info)
 {
-	// int				i;
 	pthread_t		*id;
 	t_philo			*philos;
 
