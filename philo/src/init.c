@@ -6,12 +6,23 @@
 /*   By: dritsema <dritsema@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/01/11 21:45:29 by dritsema      #+#    #+#                 */
-/*   Updated: 2023/03/16 18:42:45 by dritsema      ########   odam.nl         */
+/*   Updated: 2023/03/21 13:10:02 by dritsema      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <philo.h>
 #include <stdlib.h>
+
+static int	ft_isint(const char *str)
+{
+	while (*str)
+	{
+		if (*str < '0' || *str > '9')
+			return (0);
+		str++;
+	}
+	return (1);
+}
 
 static int	ft_atoi(const char *str)
 {
@@ -54,6 +65,13 @@ t_info	*init(int argc, char **argv)
 	t_info	*info;
 
 	info = malloc(sizeof(t_info));
+	if (!info)
+		return (NULL);
+	if (!ft_isint(argv[1]) || !ft_isint(argv[2])
+		|| !ft_isint(argv[3]) || !ft_isint(argv[4]))
+		return (NULL);
+	if (argc == 6 && !ft_isint(argv[5]))
+		return (NULL);
 	info->philo_count = ft_atoi(argv[1]);
 	info->time_to_die = ft_atoi(argv[2]);
 	info->time_to_eat = ft_atoi(argv[3]);

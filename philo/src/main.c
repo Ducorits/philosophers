@@ -6,7 +6,7 @@
 /*   By: dritsema <dritsema@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/01/03 13:10:32 by dritsema      #+#    #+#                 */
-/*   Updated: 2023/03/16 18:46:53 by dritsema      ########   odam.nl         */
+/*   Updated: 2023/03/21 13:09:32 by dritsema      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -121,13 +121,13 @@ int	main(int argc, char **argv)
 
 	if (argc > 4 && argc < 7)
 	{
-		printf("init\n");
 		info = init(argc, argv);
 		if (info == NULL)
+		{
+			printf("Invalid arguments or error :)\n");
 			return (1);
-		printf("start sim\n");
+		}
 		start_sim(info);
-		printf("end sim\n");
 		end_sim(info);
 	}
 	else
