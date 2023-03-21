@@ -6,7 +6,7 @@
 /*   By: dritsema <dritsema@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/01/11 21:45:29 by dritsema      #+#    #+#                 */
-/*   Updated: 2023/03/21 13:17:12 by dritsema      ########   odam.nl         */
+/*   Updated: 2023/03/21 13:19:37 by dritsema      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,10 +51,12 @@ int	init_mutexes(t_info *info)
 
 	i = 0;
 	info->forks = malloc(info->philo_count * sizeof(pthread_mutex_t));
+	if (!info->forks)
+		return (0);
 	while (i < info->philo_count)
 	{
 		if (pthread_mutex_init(&info->forks[i], NULL))
-			return (0);
+			return (free(info->forks), 0);
 		i++;
 	}
 	return (1);
