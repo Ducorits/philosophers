@@ -14,7 +14,7 @@ SAVE	= \0337
 RESTORE	= \0338
 INSET	= $(BEGIN)$(GREEN)+ $(BLUE)
 
-NAME		=	philosophers
+NAME		=	philo
 
 SRCS		=	main.c philo.c philo_utils.c init.c monitor.c utility.c
 

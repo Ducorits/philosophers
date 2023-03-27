@@ -6,7 +6,7 @@
 /*   By: dritsema <dritsema@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/03/16 15:12:30 by dritsema      #+#    #+#                 */
-/*   Updated: 2023/03/21 13:53:03 by dritsema      ########   odam.nl         */
+/*   Updated: 2023/03/23 16:18:17 by dritsema      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,8 +47,16 @@ void	choose_fork_uneven(t_philo *philo, int i)
 	}
 	else
 	{
-		philo->first_fork = &info->forks[i];
-		philo->second_fork = &info->forks[i + 1];
+		if (i % 2)
+		{
+			philo->first_fork = &info->forks[i + 1];
+			philo->second_fork = &info->forks[i];
+		}
+		else
+		{
+			philo->first_fork = &info->forks[i];
+			philo->second_fork = &info->forks[i + 1];
+		}
 	}
 }
 

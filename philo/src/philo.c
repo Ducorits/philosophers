@@ -6,7 +6,7 @@
 /*   By: dritsema <dritsema@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/01/11 20:07:04 by dritsema      #+#    #+#                 */
-/*   Updated: 2023/03/21 14:30:10 by dritsema      ########   odam.nl         */
+/*   Updated: 2023/03/23 16:23:31 by dritsema      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,13 +47,13 @@ int	try_to_eat(t_philo *philo)
 	if (grab_forks(philo))
 	{
 		printf("%ld %i is eating\n", ms_stamp(philo), philo->id);
-		pthread_mutex_lock(&philo->eat_lock);
-		philo->times_eaten++;
-		pthread_mutex_unlock(&philo->eat_lock);
 		pthread_mutex_lock(&philo->time_lock);
 		philo->last_meal = get_timestamp(philo->start_time);
 		pthread_mutex_unlock(&philo->time_lock);
 		custom_sleep(info->time_to_eat * 1000);
+		pthread_mutex_lock(&philo->eat_lock);
+		philo->times_eaten++;
+		pthread_mutex_unlock(&philo->eat_lock);
 		pthread_mutex_unlock(philo->first_fork);
 		pthread_mutex_unlock(philo->second_fork);
 		return (1);

@@ -6,7 +6,7 @@
 /*   By: dritsema <dritsema@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/03/08 16:39:53 by dritsema      #+#    #+#                 */
-/*   Updated: 2023/03/21 14:20:54 by dritsema      ########   odam.nl         */
+/*   Updated: 2023/03/23 16:20:09 by dritsema      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,7 @@ int	check_death(t_info *info, t_philo *philo)
 int	check_eatgoal(t_info *info, t_philo *philo)
 {
 	pthread_mutex_lock(&philo->eat_lock);
-	if (philo->times_eaten < info->eat_goal || info->eat_goal == 0)
+	if (philo->times_eaten < info->eat_goal || info->eat_goal == -1)
 	{
 		pthread_mutex_unlock(&philo->eat_lock);
 		return (0);
@@ -62,7 +62,8 @@ void	*monitor_thread(void *vargp)
 		while (i < info->philo_count && !sim_end)
 		{
 			sim_end = check_death(info, &philos[i]);
-			eat_goal_reached = check_eatgoal(info, &philos[i]);
+			if (eat_goal_reached == 1)
+				eat_goal_reached = check_eatgoal(info, &philos[i]);
 			i++;
 		}
 		if (eat_goal_reached == 1)
