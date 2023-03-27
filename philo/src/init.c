@@ -6,7 +6,7 @@
 /*   By: dritsema <dritsema@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/01/11 21:45:29 by dritsema      #+#    #+#                 */
-/*   Updated: 2023/03/23 16:20:23 by dritsema      ########   odam.nl         */
+/*   Updated: 2023/03/27 16:36:41 by dritsema      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,7 +83,7 @@ t_info	*init(int argc, char **argv)
 	else
 		info->eat_goal = -1;
 	info->time_to_think = (info->time_to_eat * 2) - info->time_to_sleep;
-	if (!init_mutexes(info))
+	if (info->philo_count <= 0 || !init_mutexes(info))
 		return (free(info), NULL);
 	return (info);
 }
