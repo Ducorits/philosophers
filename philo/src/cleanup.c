@@ -6,21 +6,20 @@
 /*   By: dritsema <dritsema@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/03/27 13:56:26 by dritsema      #+#    #+#                 */
-/*   Updated: 2023/03/27 15:08:08 by dritsema      ########   odam.nl         */
+/*   Updated: 2023/04/03 15:37:01 by dritsema      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <philo.h>
 #include <stdlib.h>
 
-void	clear_ids(pthread_t *id, int count)
+void	join_threads(pthread_t *id, int count)
 {
 	while (count > -1)
 	{
 		pthread_join(id[count], NULL);
 		count--;
 	}
-	free(id);
 }
 
 void	clear_info(t_info *info, int count)

@@ -6,7 +6,7 @@
 /*   By: dritsema <dritsema@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/01/03 13:10:32 by dritsema      #+#    #+#                 */
-/*   Updated: 2023/03/21 14:39:52 by dritsema      ########   odam.nl         */
+/*   Updated: 2023/04/03 15:37:26 by dritsema      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,73 +18,8 @@
 
 void	end_sim(t_info *info, pthread_t *id)
 {
-	int	i;
-
-	i = 0;
-	while (i < info->philo_count)
-	{
-		pthread_join(id[i], NULL);
-		i++;
-	}
-	i = 0;
-	while (i < info->philo_count)
-	{
-		pthread_mutex_destroy(&info->forks[i]);
-		i++;
-	}
-	free(info->forks);
-	free(info);
-}
-
-int	setup_philosophers(t_philo *philos, t_info *info, long start_time)
-{
-	int	i;
-
-	i = 0;
-	while (i < info->philo_count)
-	{
-		philos[i].id = i;
-		philos[i].info = info;
-		philos[i].last_meal = 0;
-		philos[i].times_eaten = 0;
-		philos[i].state = THINKING;
-		philos[i].start_time = start_time;
-		if (info->philo_count % 2)
-			choose_fork_uneven(&philos[i], i);
-		else
-			choose_fork_even(&philos[i], i);
-		if (pthread_mutex_init(&philos[i].state_lock, NULL)
-			|| pthread_mutex_init(&philos[i].eat_lock, NULL)
-			|| pthread_mutex_init(&philos[i].time_lock, NULL))
-			return (1);
-		i++;
-	}
-	return (0);
-}
-
-int	start_threads(t_info *info, pthread_t *id, t_philo *philos)
-{
-	pthread_t		monit_id;
-	struct timeval	time;
-	long			start_time;
-	int				i;
-
-	gettimeofday(&time, NULL);
-	start_time = (((time.tv_sec * 1000000) + time.tv_usec));
-	if (setup_philosophers(philos, info, start_time))
-		return (1);
-	i = 0;
-	while (i < info->philo_count)
-	{
-		if (pthread_create(&id[i], NULL, philo_thread, (void *)&philos[i]))
-			return (1);
-		i++;
-	}
-	if (pthread_create(&monit_id, NULL, monitor_thread, (void *)philos))
-		return (1);
-	if (pthread_detach(monit_id))
-		return (1);
-	return (0);
+	free(id);
+	clear_info(info, info->philo_count - 1);
 }
 
 void	start_sim(t_info *info)
@@ -103,9 +38,9 @@ void	start_sim(t_info *info)
 		return (end_sim(info, id));
 	}
 	pthread_mutex_unlock(&info->start);
+	join_threads(id, info->philo_count - 1);
+	clear_philos(philos, info->philo_count - 1);
 	end_sim(info, id);
-	free(id);
-	free(philos);
 	return ;
 }
 

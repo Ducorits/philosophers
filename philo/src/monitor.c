@@ -6,7 +6,7 @@
 /*   By: dritsema <dritsema@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/03/08 16:39:53 by dritsema      #+#    #+#                 */
-/*   Updated: 2023/03/23 16:20:09 by dritsema      ########   odam.nl         */
+/*   Updated: 2023/04/03 15:36:28 by dritsema      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,7 +50,7 @@ void	*monitor_thread(void *vargp)
 	t_philo	*philos;
 	int		sim_end;
 	int		i;
-	int		eat_goal_reached;
+	int		eat_goal;
 
 	sim_end = 0;
 	philos = (t_philo *)vargp;
@@ -58,15 +58,14 @@ void	*monitor_thread(void *vargp)
 	while (sim_end == 0)
 	{
 		i = 0;
-		eat_goal_reached = 1;
+		eat_goal = 0;
 		while (i < info->philo_count && !sim_end)
 		{
 			sim_end = check_death(info, &philos[i]);
-			if (eat_goal_reached == 1)
-				eat_goal_reached = check_eatgoal(info, &philos[i]);
+			eat_goal += check_eatgoal(info, &philos[i]);
 			i++;
 		}
-		if (eat_goal_reached == 1)
+		if (eat_goal >= info->philo_count)
 			sim_end = 1;
 	}
 	kill_them_all(philos, info);

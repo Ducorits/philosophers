@@ -16,7 +16,7 @@ INSET	= $(BEGIN)$(GREEN)+ $(BLUE)
 
 NAME		=	philo
 
-SRCS		=	main.c philo.c philo_utils.c init.c monitor.c utility.c
+SRCS		=	main.c philo.c philo_utils.c init.c monitor.c utility.c cleanup.c start_threads.c
 
 INC			=	-I ./include
 
@@ -41,14 +41,14 @@ else
 CFLAGS	= -Wall -Wextra -Werror -O3
 endif
 
-all: heading status comp
+$(NAME): $(OBJS)
+	@printf "$(INSET)"
+	$(CC) $(CFLAGS) $(INC) $^ -o $@
+	@printf "$(GREEN)+ $(ORANGE)Created executable.\n$(RESET)"
 
-.PHONY: heading status comp clean fclean re rere debug
+all: $(NAME)
 
-comp: $(NAME)
-
-heading:
-	@printf "$(CYAN)| $(ORANGE)Duco's $(NAME)\n$(RESET)"
+.PHONY: clean fclean re rere debug
 
 obj/%.o: src/%.c
 	@mkdir -p $(@D)
@@ -56,25 +56,22 @@ obj/%.o: src/%.c
 	$(CC) $(CFLAGS) $(INC) -c $^ -o $@
 	$(eval COMPILED=$(shell echo $$(($(COMPILED)+1))))
 
-$(NAME): $(OBJS)
-	@printf "$(INSET)"
-	$(CC) $(CFLAGS) $(INC) $^ -o $@
-	@printf "$(CYAN)| $(ORANGE)Created executable.\n$(RESET)"
-
 depclean:
 	@make -C libft/ fclean SILENT=1
 
-clean: heading
-	@rm -rf obj
-	@printf "$(RED)- $(BLUE)Removed any object files.\n$(RESET)"
+clean:
+	@printf "$(RED)- $(BLUE)"
+	rm -rf obj
+	@printf "$(RESET)"
 
 fclean: clean
-	@rm -f $(NAME)
-	@printf "$(RED)- $(BLUE)Removed executable file.\n$(RESET)"
+	@printf "$(RED)- $(BLUE)"
+	rm -f $(NAME)
+	@printf "$(RESET)"
 
-re: fclean comp
+re: fclean all
 
-rere: fclean depclean comp
+rere: fclean depclean all
 
 debug:
 	@make DEBUG=1

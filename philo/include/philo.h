@@ -6,7 +6,7 @@
 /*   By: dritsema <dritsema@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/01/03 13:10:26 by dritsema      #+#    #+#                 */
-/*   Updated: 2023/03/21 14:26:07 by dritsema      ########   odam.nl         */
+/*   Updated: 2023/04/03 15:00:26 by dritsema      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,9 +19,7 @@
 typedef enum e_state
 {
 	DEAD,
-	THINKING,
-	EATING,
-	SLEEPING,
+	ALIVE,
 }	t_state;
 typedef struct s_info
 {
@@ -60,5 +58,11 @@ void	*monitor_thread(void *vargp);
 long	get_timestamp(long start_time);
 void	custom_sleep(long sleep_time);
 long	ms_stamp(t_philo *philo);
+void	deconstruct_philo(t_philo *philo);
+int		start_threads(t_info *info, pthread_t *id, t_philo *philos);
+
+void	join_threads(pthread_t *id, int count);
+void	clear_info(t_info *info, int count);
+void	clear_philos(t_philo *philos, int count);
 
 #endif //PHILO_H

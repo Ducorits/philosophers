@@ -6,7 +6,7 @@
 /*   By: dritsema <dritsema@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/01/11 21:45:29 by dritsema      #+#    #+#                 */
-/*   Updated: 2023/03/27 16:36:41 by dritsema      ########   odam.nl         */
+/*   Updated: 2023/04/03 14:42:49 by dritsema      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,14 +49,16 @@ int	init_mutexes(t_info *info)
 {
 	int	i;
 
-	i = 0;
 	info->forks = malloc(info->philo_count * sizeof(pthread_mutex_t));
 	if (!info->forks)
 		return (0);
+	if (pthread_mutex_init(&info->start, NULL))
+		return (clear_info(info, -1), 0);
+	i = 0;
 	while (i < info->philo_count)
 	{
 		if (pthread_mutex_init(&info->forks[i], NULL))
-			return (free(info->forks), 0);
+			return (clear_info(info, i), 0);
 		i++;
 	}
 	return (1);
@@ -66,14 +68,14 @@ t_info	*init(int argc, char **argv)
 {
 	t_info	*info;
 
+	if (!ft_isint(argv[1]) || !ft_isint(argv[2])
+		|| !ft_isint(argv[3]) || !ft_isint(argv[4]))
+		return (NULL);
+	if (argc == 6 && !ft_isint(argv[5]))
+		return (NULL);
 	info = malloc(sizeof(t_info));
 	if (!info)
 		return (NULL);
-	if (!ft_isint(argv[1]) || !ft_isint(argv[2])
-		|| !ft_isint(argv[3]) || !ft_isint(argv[4]))
-		return (free(info), NULL);
-	if (argc == 6 && !ft_isint(argv[5]))
-		return (free(info), NULL);
 	info->philo_count = ft_atoi(argv[1]);
 	info->time_to_die = ft_atoi(argv[2]);
 	info->time_to_eat = ft_atoi(argv[3]);
@@ -83,7 +85,9 @@ t_info	*init(int argc, char **argv)
 	else
 		info->eat_goal = -1;
 	info->time_to_think = (info->time_to_eat * 2) - info->time_to_sleep;
-	if (info->philo_count <= 0 || !init_mutexes(info))
+	if (info->philo_count <= 0)
 		return (free(info), NULL);
+	if (!init_mutexes(info))
+		return (NULL);
 	return (info);
 }
